@@ -1,12 +1,14 @@
 # Continual Learning for Deep Discriminative Models
 
-Requirement: Tensorflow 1.4.0.
+## To install the requirements, issue the following command
 
-**To run the Permuted MNIST experiment:**
+    pip install -r requirements.txt 
+
+## To run the Permuted MNIST experiment
 
 	python run_permuted.py
 
-**To run the Split MNIST experiment:**
+## To run the Split MNIST experiment
 
 	python run_split.py
 

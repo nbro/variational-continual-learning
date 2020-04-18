@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import sys, os
-sys.path.extend(['alg/', 'models/'])
+sys.path.extend(['algorithms/', 'models/'])
 from visualisation import plot_images
 from encoder_no_shared import encoder, recon
 from utils import init_variables, save_params, load_params, load_data

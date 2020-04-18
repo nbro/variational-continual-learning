@@ -1,8 +1,10 @@
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-from cla_models_multihead import MFVI_NN
+from models import MeanFieldVINN
+
 
 def merge_coresets(x_coresets, y_coresets):
     merged_x, merged_y = x_coresets[0], y_coresets[0]
@@ -11,7 +13,9 @@ def merge_coresets(x_coresets, y_coresets):
         merged_y = np.vstack((merged_y, y_coresets[i]))
     return merged_x, merged_y
 
-def get_scores(model, x_testsets, y_testsets, x_coresets, y_coresets, hidden_size, no_epochs, single_head, batch_size=None):
+
+def get_scores(model, x_testsets, y_testsets, x_coresets, y_coresets, hidden_size, no_epochs, single_head,
+               batch_size=None):
     mf_weights, mf_variances = model.get_weights()
     acc = []
 
@@ -19,7 +23,8 @@ def get_scores(model, x_testsets, y_testsets, x_coresets, y_coresets, hidden_siz
         if len(x_coresets) > 0:
             x_train, y_train = merge_coresets(x_coresets, y_coresets)
             bsize = x_train.shape[0] if (batch_size is None) else batch_size
-            final_model = MFVI_NN(x_train.shape[1], hidden_size, y_train.shape[1], x_train.shape[0], prev_means=mf_weights, prev_log_variances=mf_variances)
+            final_model = MeanFieldVINN(x_train.shape[1], hidden_size, y_train.shape[1], x_train.shape[0],
+                                        prev_means=mf_weights, prev_log_variances=mf_variances)
             final_model.train(x_train, y_train, 0, no_epochs, bsize)
         else:
             final_model = model
@@ -29,7 +34,8 @@ def get_scores(model, x_testsets, y_testsets, x_coresets, y_coresets, hidden_siz
             if len(x_coresets) > 0:
                 x_train, y_train = x_coresets[i], y_coresets[i]
                 bsize = x_train.shape[0] if (batch_size is None) else batch_size
-                final_model = MFVI_NN(x_train.shape[1], hidden_size, y_train.shape[1], x_train.shape[0], prev_means=mf_weights, prev_log_variances=mf_variances)
+                final_model = MeanFieldVINN(x_train.shape[1], hidden_size, y_train.shape[1], x_train.shape[0],
+                                            prev_means=mf_weights, prev_log_variances=mf_variances)
                 final_model.train(x_train, y_train, i, no_epochs, bsize)
             else:
                 final_model = model
@@ -52,26 +58,28 @@ def get_scores(model, x_testsets, y_testsets, x_coresets, y_coresets, hidden_siz
 
     return acc
 
+
 def concatenate_results(score, all_score):
     if all_score.size == 0:
-        all_score = np.reshape(score, (1,-1))
+        all_score = np.reshape(score, (1, -1))
     else:
-        new_arr = np.empty((all_score.shape[0], all_score.shape[1]+1))
+        new_arr = np.empty((all_score.shape[0], all_score.shape[1] + 1))
         new_arr[:] = np.nan
-        new_arr[:,:-1] = all_score
+        new_arr[:, :-1] = all_score
         all_score = np.vstack((new_arr, score))
     return all_score
+
 
 def plot(filename, vcl, rand_vcl, kcen_vcl):
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
 
-    fig = plt.figure(figsize=(7,3))
+    fig = plt.figure(figsize=(7, 3))
     ax = plt.gca()
-    plt.plot(np.arange(len(vcl))+1, vcl, label='VCL', marker='o')
-    plt.plot(np.arange(len(rand_vcl))+1, rand_vcl, label='VCL + Random Coreset', marker='o')
-    plt.plot(np.arange(len(kcen_vcl))+1, kcen_vcl, label='VCL + K-center Coreset', marker='o')
-    ax.set_xticks(range(1, len(vcl)+1))
+    plt.plot(np.arange(len(vcl)) + 1, vcl, label='VCL', marker='o')
+    plt.plot(np.arange(len(rand_vcl)) + 1, rand_vcl, label='VCL + Random Coreset', marker='o')
+    plt.plot(np.arange(len(kcen_vcl)) + 1, kcen_vcl, label='VCL + K-center Coreset', marker='o')
+    ax.set_xticks(range(1, len(vcl) + 1))
     ax.set_ylabel('Average accuracy')
     ax.set_xlabel('\# tasks')
     ax.legend()
